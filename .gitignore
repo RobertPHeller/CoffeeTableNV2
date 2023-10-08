@@ -1,3 +1,10 @@
 *~
 *#
 
+# Python cache
+__pycache__/*
+# FreeCAD files
+*.FCStd
+
+# Bill of Materials
+*.bom
