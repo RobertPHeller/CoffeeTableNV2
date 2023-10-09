@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231008.1709>
+#  Last Modified : <231009.1559>
 #
 #  Description	
 #
@@ -172,6 +172,10 @@ class CoffeeTableNV2(GenerateDrawings):
     __ClearHeight = 7*25.4
     __TopBarHeight = 2*25.4
     __GlassThick = .25*25.4
+    __GlassColor = (1.0,1.0,1.0)
+    __FeltThick  = .125*25.4
+    __FeltColor = (0.0,1.0,0.0)
+    __TopFeltWidth = .375*25.4
     __FloorOffset = 1*25.4
     __LegSquare   = 2*25.4
     __CenterUnderHang = .5*25.4
@@ -199,7 +203,7 @@ class CoffeeTableNV2(GenerateDrawings):
     @classmethod
     def LegLength(cls):
         return (cls.__FloorOffset+cls.__BaseHeight+cls.__ClearHeight+\
-                cls.__TopBarHeight)-cls.__GlassThick
+                cls.__TopBarHeight)-(cls.__GlassThick-cls.__FeltThick)
     @classmethod
     def TableHeight(cls):
         return (cls.__FloorOffset+cls.__BaseHeight+cls.__ClearHeight+\
@@ -210,9 +214,8 @@ class CoffeeTableNV2(GenerateDrawings):
             raise RuntimeError("origin is not a Vector!")
         self.origin = origin
         self.__makeBase()
-        self.__makeTopBar()
+        self.__makeTop()
         self.__makeLegs()
-        self.__makeGlassTop()
         self.__makeLexanSides()
     def __makeDrawer(self):
         dx = self.__Length/2.0 - (CoffeeTableNV2.DrawerWidth()/2.0)
@@ -292,14 +295,23 @@ class CoffeeTableNV2(GenerateDrawings):
         post1 = Part.makePlane(self.__BoardThick,self.__LegSquare,\
                                centerOrigin).extrude(postExtrude)
         post1 = post1.cut(self.baseCross1)
+        Material.AddMaterial("Hardwood","thick=3/4",\
+                        "width=%f"%(self.__LegSquare/25.4),\
+                        "length=%f"%(cPostH/25.4))
         post2 = Part.makePlane(self.__BoardThick,self.__LegSquare,\
                      centerOrigin.add(Base.Vector(cLength,0,0)))\
                      .extrude(postExtrude)
         post2 = post2.cut(self.baseCross2)
+        Material.AddMaterial("Hardwood","thick=3/4",\
+                        "width=%f"%(self.__LegSquare/25.4),\
+                        "length=%f"%(cPostH/25.4))
         top = Part.makePlane(cLength-self.__NotchDepth,self.__LegSquare,\
               centerOrigin.add(Base.Vector(self.__BoardThick-self.__NotchDepth,
                                            0,cPostH-self.__BoardThick)))\
                      .extrude(Base.Vector(0,0,self.__BoardThick))
+        Material.AddMaterial("Hardwood","thick=3/4",\
+                        "width=%f"%(self.__LegSquare/25.4),\
+                        "length=%f"%((cLength-self.__NotchDepth)/25.4))
         post1 = post1.cut(top)
         post2 = post2.cut(top)
         backZ = self.__CenterUnderHang+self.__BaseHeight+self.__BirchPlyThick
@@ -308,14 +320,28 @@ class CoffeeTableNV2(GenerateDrawings):
         backH = centerTop - back1O.z
         back1 = Part.makePlane(backL,self.__BackDropThick,back1O)\
                 .extrude(Base.Vector(0,0,backH))
+        Material.AddMaterial("Masonite","thick=1/4",\
+                             "width=%f"%(backL),\
+                             "length=%f"%(backH))
         back2O = centerOrigin.add(Base.Vector(0,self.__LegSquare,backZ))
         back2 = Part.makePlane(backL,self.__BackDropThick,back2O)\
                 .extrude(Base.Vector(0,0,backH))
+        Material.AddMaterial("Masonite","thick=1/4",\
+                             "width=%f"%(backL),\
+                             "length=%f"%(backH))
+        topFelt = Part.makePlane(cLength-self.__NotchDepth,self.__LegSquare,\
+                                centerOrigin.add(Base.Vector(self.__BoardThick-self.__NotchDepth, 
+                                                             0,cPostH)))\
+                .extrude(Base.Vector(0,0,self.__FeltThick))
+        Material.AddMaterial("Felt","thick=1/8",\
+                             "width=%f"%(self.__LegSquare/25.4),\
+                             "length=%f"%((cLength-self.__NotchDepth)/25.4))
         self.centerPost1 = post1
         self.centerPost2 = post2
         self.centerTop = top
         self.centerBack1 = back1
         self.centerBack2 = back2
+        self.centerFelt = topFelt
     def __makeBase(self):
         fo = self.__FloorOffset
         self.__baseOrigin = self.origin.add(Base.Vector(0,0,fo))
@@ -334,13 +360,13 @@ class CoffeeTableNV2(GenerateDrawings):
                              "length=%f"%(self.__Length/25.4))
         crossLength = self.__Width - (2*(self.__BoardThick-self.__NotchDepth))
         no = self.__BoardThick-self.__NotchDepth
-        left = Part.makePlane(self.__BoardThick,crossLength,
+        left = Part.makePlane(self.__BoardThick,crossLength,\
                               self.__baseOrigin.add(Base.Vector(0,no,0)))\
                  .extrude(baseExtrude)
         Material.AddMaterial("Hardwood","thick=3/4",\
                              "width=%f"%(self.__BaseHeight/25.4),\
                              "length=%f"%(crossLength/25.4))
-        right = Part.makePlane(self.__BoardThick,crossLength,
+        right = Part.makePlane(self.__BoardThick,crossLength,\
                               self.__baseOrigin.add(Base.Vector(self.__Length-self.__BoardThick,no,0)))\
                  .extrude(baseExtrude)
         Material.AddMaterial("Hardwood","thick=3/4",\
@@ -354,13 +380,13 @@ class CoffeeTableNV2(GenerateDrawings):
         self.__c1X = c1o - (self.__BoardThick - self.__NotchDepth)
         c2o = self.__Length-((self.__Length/3.0)+self.__BoardThick)
         self.__c2X = c2o + self.__BoardThick - self.__NotchDepth
-        cross1 = Part.makePlane(self.__BoardThick,crossLength,
+        cross1 = Part.makePlane(self.__BoardThick,crossLength,\
                                 self.__baseOrigin.add(Base.Vector(c1o,no,0)))\
                   .extrude(baseExtrude)
         Material.AddMaterial("Hardwood","thick=3/4",\
                              "width=%f"%(self.__BaseHeight/25.4),\
                              "length=%f"%(crossLength/25.4))
-        cross2 = Part.makePlane(self.__BoardThick,crossLength,
+        cross2 = Part.makePlane(self.__BoardThick,crossLength,\
                                 self.__baseOrigin.add(Base.Vector(c2o,no,0)))\
                   .extrude(baseExtrude)
         Material.AddMaterial("Hardwood","thick=3/4",\
@@ -379,12 +405,93 @@ class CoffeeTableNV2(GenerateDrawings):
         self.__makeDrawer()
         self.__cutDrawerCutout()
         self.__makeCenter()
-        
-    def __makeTopBar(self):
-        pass
+    def __makeTop(self):
+        to = self.__FloorOffset+self.__BaseHeight+self.__ClearHeight
+        self.__topBarOrig = self.origin.add(Base.Vector(0,0,to))
+        topExtrude = Base.Vector(0,0,self.__TopBarHeight)
+        front = Part.makePlane(self.__Length,self.__BoardThick,\
+                                self.__topBarOrig)\
+                 .extrude(topExtrude)
+        Material.AddMaterial("Hardwood","thick=3/4",\
+                             "width=%f"%(self.__TopBarHeight),\
+                             "length=%f"%(self.__Length/25.4))
+        back = Part.makePlane(self.__Length,self.__BoardThick,\
+                              self.__topBarOrig.add(Base.Vector(0,self.__Width-self.__BoardThick,0)))\
+                 .extrude(topExtrude)
+        Material.AddMaterial("Hardwood","thick=3/4",\
+                              "width=%f"%(self.__TopBarHeight),\
+                              "length=%f"%(self.__Length/25.4))
+        crossLength = self.__Width - (2*(self.__BoardThick-self.__NotchDepth))
+        no = self.__BoardThick-self.__NotchDepth
+        left = Part.makePlane(self.__BoardThick,crossLength,\
+                              self.__topBarOrig.add(Base.Vector(0,no,0)))\
+                .extrude(topExtrude)
+        Material.AddMaterial("Hardwood","thick=3/4",\
+                             "width=%f"%(self.__TopBarHeight),\
+                             "length=%f"%(crossLength/25.4))
+        right = Part.makePlane(self.__BoardThick,crossLength,\
+                               self.__topBarOrig.add(Base.Vector(self.__Length-self.__BoardThick,no,0)))\
+                 .extrude(topExtrude)
+        Material.AddMaterial("Hardwood","thick=3/4",\
+                             "width=%f"%(self.__TopBarHeight/25.4),\
+                             "length=%f"%(crossLength/25.4))
+        front = front.cut(left)
+        front = front.cut(right)
+        back  = back.cut(left)
+        back  = back.cut(right)
+        fl = self.__Length-(2*(self.__BoardThick-self.__TopFeltWidth))
+        fo = self.origin.add(Base.Vector(self.__BoardThick-self.__TopFeltWidth,\
+                                         self.__BoardThick-self.__TopFeltWidth,\
+                                         CoffeeTableNV2.LegLength()))
+        feltExtrude = Base.Vector(0,0,self.__FeltThick)
+        felt = Part.makePlane(fl,self.__TopFeltWidth,fo).extrude(feltExtrude)
+        Material.AddMaterial("Felt","thick=1/8",\
+                             "width=%f"%(self.__TopFeltWidth/25.4),\
+                             "length=%f"%(fl/25.4))
+        felt = felt.fuse(Part.makePlane(fl,self.__TopFeltWidth,\
+                                       fo.add(Base.Vector(0,
+                                           self.__Width-self.__BoardThick\
+                                            -self.__TopFeltWidth,0)))\
+                             .extrude(feltExtrude))
+        Material.AddMaterial("Felt","thick=1/8",\
+                             "width=%f"%(self.__TopFeltWidth/25.4),\
+                             "length=%f"%(fl/25.4))
+        fw = self.__Width-(2*self.__BoardThick)
+        felt = felt.fuse(Part.makePlane(self.__TopFeltWidth,fw,\
+                         fo.add(Base.Vector(0,self.__BoardThick-self.__TopFeltWidth,0))).extrude(feltExtrude))
+        Material.AddMaterial("Felt","thick=1/8",\
+                             "width=%f"%(self.__TopFeltWidth/25.4),\
+                             "length=%f"%(fw/25.4))
+        felt = felt.fuse(Part.makePlane(self.__TopFeltWidth,fw,\
+                         fo.add(Base.Vector(fl-self.__TopFeltWidth,\
+                                            self.__BoardThick-self.__TopFeltWidth,0)))\
+                            .extrude(feltExtrude))
+        Material.AddMaterial("Felt","thick=1/8",\
+                             "width=%f"%(self.__TopFeltWidth/25.4),\
+                             "length=%f"%(fw/25.4))
+        go = fo.add(Base.Vector(0,0,self.__FeltThick))
+        gl = self.__Length-(2*(self.__BoardThick-self.__TopFeltWidth))
+        gw = self.__Width-(2*(self.__BoardThick-self.__TopFeltWidth))
+        glass = Part.makePlane(gl,gw,go)\
+                .extrude(Base.Vector(0,0,self.__GlassThick))
+        Material.AddMaterial("Tempered Glass","thick=1/4",\
+                             "width=%f"%(gw/25.4),\
+                             "length=%f"%(gl/25.4))
+        front = front.cut(felt)
+        front = front.cut(glass)
+        back = back.cut(felt)
+        back = back.cut(glass)
+        left = left.cut(felt)
+        left = left.cut(glass)
+        right = right.cut(felt)
+        right = right.cut(glass)
+        self.topBarFront = front
+        self.topBarBack  = back
+        self.topBarLeft = left
+        self.topBarRight = right
+        self.topBarFelt = felt
+        self.tableTop = glass
     def __makeLegs(self):
-        pass
-    def __makeGlassTop(self):
         pass
     def __makeLexanSides(self):
         pass
@@ -455,7 +562,35 @@ class CoffeeTableNV2(GenerateDrawings):
         obj.Shape = self.centerBack2
         obj.Label = self.name+"_centerBack2"
         obj.ViewObject.ShapeColor=self.__BackDropColor
-
+        obj = doc.addObject("Part::Feature",self.name+"_centerFelt")
+        obj.Shape = self.centerFelt
+        obj.Label = self.name+"_centerFelt"
+        obj.ViewObject.ShapeColor=self.__FeltColor
+        obj = doc.addObject("Part::Feature",self.name+"_topBarFront")
+        obj.Shape = self.topBarFront
+        obj.Label = self.name+"_topBarFront"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_topBarBack")
+        obj.Shape = self.topBarBack
+        obj.Label = self.name+"_topBarBack"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_topBarLeft")
+        obj.Shape = self.topBarLeft
+        obj.Label = self.name+"_topBarLeft"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_topBarRight")
+        obj.Shape = self.topBarRight
+        obj.Label = self.name+"_topBarRight"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_topBarFelt")
+        obj.Shape = self.topBarFelt
+        obj.Label = self.name+"_topBarFelt"
+        obj.ViewObject.ShapeColor=self.__FeltColor
+        obj = doc.addObject("Part::Feature",self.name+"_tableTop")
+        obj.Shape = self.tableTop
+        obj.Label = self.name+"_tableTop"
+        obj.ViewObject.ShapeColor=self.__GlassColor
+        obj.ViewObject.Transparency = 90
 
 
 if __name__ == '__main__':
