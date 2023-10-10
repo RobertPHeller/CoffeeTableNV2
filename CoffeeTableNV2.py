@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231010.1348>
+#  Last Modified : <231010.1700>
 #
 #  Description	
 #
@@ -191,7 +191,7 @@ class CoffeeTableNV2(GenerateDrawings):
     __DrawerBottomNotchOffset = .5*25.4
     __BackDropColor = (1.0,1.0,1.0)
     __BackDropThick = .25*25.4
-    __SideBoardThick = .5*25.4
+    __SideBoardThick = (9/16)*25.4
     __SideBoardWidth = 1*25.4
     # These three dims are from Everbilt D68816E-W-W Install Guide
     # CP3253028 ©2017 Liberty Hardware Manufacturing Corporation, A MASCO COMPANY REV 9/29/2017
@@ -555,12 +555,15 @@ class CoffeeTableNV2(GenerateDrawings):
             ww=self.__SideBoardWidth
             l=self.__SideBoardThick
             ll=l
+            foff = self.__SideBoardThick-(self.__BoardThick-self.__NotchDepth)
+            boff = self.__BoardThick-self.__NotchDepth
+            Length = w
             if which == "front":
-                orig1=self.__baseOrigin.add(Base.Vector(0,0,\
+                orig1=self.__baseOrigin.add(Base.Vector(0,-foff,\
                                                         self.__BaseHeight+\
                                                         self.__BirchPlyThick))
             else:
-                orig1=self.__baseOrigin.add(Base.Vector(0,self.__Width-l,\
+                orig1=self.__baseOrigin.add(Base.Vector(0,self.__Width-boff,\
                                                         self.__BaseHeight+\
                                                         self.__BirchPlyThick))
             orig2=orig1.add(Base.Vector(w-bw,0,0))
@@ -569,19 +572,35 @@ class CoffeeTableNV2(GenerateDrawings):
             ww=w
             l=self.__Width-(2*self.__SideBoardThick)
             ll=self.__SideBoardWidth
+            fboff = self.__BoardThick-self.__NotchDepth
+            loff  = self.__SideBoardThick-(self.__BoardThick-self.__NotchDepth)
+            Length = l
             if which == "left":
-                orig1=self.__baseOrigin.add(Base.Vector(0,w,\
+                orig1=self.__baseOrigin.add(Base.Vector(-loff,fboff,\
                                                         self.__BaseHeight+\
                                                         self.__BirchPlyThick))
             else:
-                orig1=self.__baseOrigin.add(Base.Vector(self.__Length-w,w,\
+                orig1=self.__baseOrigin.add(Base.Vector(self.__Length-fboff,\
+                                                        fboff,\
                                                         self.__BaseHeight+\
                                                         self.__BirchPlyThick))
             orig2=orig1.add(Base.Vector(0,l-bw,0))
         bot = Part.makePlane(w,l,orig1).extrude(Base.Vector(0,0,bw))
+        Material.AddMaterial("Hardwood","thick=9/16",\
+                             "width=%f"%(self.__SideBoardWidth/25.4),\
+                             "length=%f"%(l/25.4))
         top = Part.makePlane(w,l,orig1.add(Base.Vector(0,0,h-bw))).extrude(Base.Vector(0,0,bw))
+        Material.AddMaterial("Hardwood","thick=9/16",\
+                             "width=%f"%(self.__SideBoardWidth/25.4),\
+                             "length=%f"%(l/25.4))
         left = Part.makePlane(ww,ll,orig1).extrude(Base.Vector(0,0,h))
+        Material.AddMaterial("Hardwood","thick=9/16",\
+                             "width=%f"%(self.__SideBoardWidth/25.4),\
+                             "length=%f"%(h/25.4))
         right = Part.makePlane(ww,ll,orig2).extrude(Base.Vector(0,0,h))
+        Material.AddMaterial("Hardwood","thick=9/16",\
+                             "width=%f"%(self.__SideBoardWidth/25.4),\
+                             "length=%f"%(h/25.4))
         return [bot,top,left,right]
     def __makeSides(self):
         self.sideFront = self.__makeSide("front")
