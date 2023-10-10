@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231010.1121>
+#  Last Modified : <231010.1348>
 #
 #  Description	
 #
@@ -191,6 +191,8 @@ class CoffeeTableNV2(GenerateDrawings):
     __DrawerBottomNotchOffset = .5*25.4
     __BackDropColor = (1.0,1.0,1.0)
     __BackDropThick = .25*25.4
+    __SideBoardThick = .5*25.4
+    __SideBoardWidth = 1*25.4
     # These three dims are from Everbilt D68816E-W-W Install Guide
     # CP3253028 ©2017 Liberty Hardware Manufacturing Corporation, A MASCO COMPANY REV 9/29/2017
     __DrawerSideClearance = 12.5
@@ -542,8 +544,50 @@ class CoffeeTableNV2(GenerateDrawings):
         leg = leg.cut(self.topBarBack)
         leg = leg.cut(self.topBarRight)
         self.leg4 = leg
+    def __makeSide(self,which):
+        w=None
+        l=None
+        h=self.__ClearHeight-self.__BirchPlyThick
+        bw=self.__SideBoardWidth
+        orig=None
+        if which == "front" or which == "back":
+            w=self.__Length
+            ww=self.__SideBoardWidth
+            l=self.__SideBoardThick
+            ll=l
+            if which == "front":
+                orig1=self.__baseOrigin.add(Base.Vector(0,0,\
+                                                        self.__BaseHeight+\
+                                                        self.__BirchPlyThick))
+            else:
+                orig1=self.__baseOrigin.add(Base.Vector(0,self.__Width-l,\
+                                                        self.__BaseHeight+\
+                                                        self.__BirchPlyThick))
+            orig2=orig1.add(Base.Vector(w-bw,0,0))
+        else:
+            w=self.__SideBoardThick
+            ww=w
+            l=self.__Width-(2*self.__SideBoardThick)
+            ll=self.__SideBoardWidth
+            if which == "left":
+                orig1=self.__baseOrigin.add(Base.Vector(0,w,\
+                                                        self.__BaseHeight+\
+                                                        self.__BirchPlyThick))
+            else:
+                orig1=self.__baseOrigin.add(Base.Vector(self.__Length-w,w,\
+                                                        self.__BaseHeight+\
+                                                        self.__BirchPlyThick))
+            orig2=orig1.add(Base.Vector(0,l-bw,0))
+        bot = Part.makePlane(w,l,orig1).extrude(Base.Vector(0,0,bw))
+        top = Part.makePlane(w,l,orig1.add(Base.Vector(0,0,h-bw))).extrude(Base.Vector(0,0,bw))
+        left = Part.makePlane(ww,ll,orig1).extrude(Base.Vector(0,0,h))
+        right = Part.makePlane(ww,ll,orig2).extrude(Base.Vector(0,0,h))
+        return [bot,top,left,right]
     def __makeSides(self):
-        pass
+        self.sideFront = self.__makeSide("front")
+        self.sideBack  = self.__makeSide("back")
+        self.sideLeft  = self.__makeSide("left")
+        self.sideRight = self.__makeSide("right")
     def show(self,doc=None):
         if doc==None:
             doc = App.activeDocument()
@@ -660,7 +704,70 @@ class CoffeeTableNV2(GenerateDrawings):
         obj.Shape = self.layoutPanel
         obj.Label = self.name+"_layoutPanel"
         obj.ViewObject.ShapeColor=self.__BirchColor
-
+        obj = doc.addObject("Part::Feature",self.name+"_sideFront_bot")
+        obj.Shape = self.sideFront[0]
+        obj.Label = self.name+"_sideFront_bot"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideFront_top")
+        obj.Shape = self.sideFront[1]
+        obj.Label = self.name+"_sideFront_top"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideFront_left")
+        obj.Shape = self.sideFront[2]
+        obj.Label = self.name+"_sideFront_left"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideFront_right")
+        obj.Shape = self.sideFront[3]
+        obj.Label = self.name+"_sideFront_right"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideBack_bot")
+        obj.Shape = self.sideBack[0]
+        obj.Label = self.name+"_sideBack_bot"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideBack_top")
+        obj.Shape = self.sideBack[1]
+        obj.Label = self.name+"_sideBack_top"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideBack_left")
+        obj.Shape = self.sideBack[2]
+        obj.Label = self.name+"_sideBack_left"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideBack_right")
+        obj.Shape = self.sideBack[3]
+        obj.Label = self.name+"_sideBack_right"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideLeft_bot")
+        obj.Shape = self.sideLeft[0]
+        obj.Label = self.name+"_sideLeft_bot"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideLeft_top")
+        obj.Shape = self.sideLeft[1]
+        obj.Label = self.name+"_sideLeft_top"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideLeft_left")
+        obj.Shape = self.sideLeft[2]
+        obj.Label = self.name+"_sideLeft_left"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideLeft_right")
+        obj.Shape = self.sideLeft[3]
+        obj.Label = self.name+"_sideLeft_right"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideRight_bot")
+        obj.Shape = self.sideRight[0]
+        obj.Label = self.name+"_sideRight_bot"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideRight_top")
+        obj.Shape = self.sideRight[1]
+        obj.Label = self.name+"_sideRight_top"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideRight_left")
+        obj.Shape = self.sideRight[2]
+        obj.Label = self.name+"_sideRight_left"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_sideRight_right")
+        obj.Shape = self.sideRight[3]
+        obj.Label = self.name+"_sideRight_right"
+        obj.ViewObject.ShapeColor=self.__WoodColor
 
 if __name__ == '__main__':
     doc = None
