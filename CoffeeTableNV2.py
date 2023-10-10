@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231009.1559>
+#  Last Modified : <231010.1121>
 #
 #  Description	
 #
@@ -216,7 +216,21 @@ class CoffeeTableNV2(GenerateDrawings):
         self.__makeBase()
         self.__makeTop()
         self.__makeLegs()
-        self.__makeLexanSides()
+        layoutPanel = Part.makePlane(self.__Length,self.__Width,\
+                                     origin.add(Base.Vector(0,0,\
+                                        self.__FloorOffset+self.__BaseHeight)))\
+                           .extrude(Base.Vector(0,0,self.__BirchPlyThick))
+        Material.AddMaterial("birch plywood","thick=1/4",
+                             "width=%f"%(self.__Width/25.4),\
+                             "length=%f"%(self.__Length/25.4))
+        layoutPanel = layoutPanel.cut(self.leg1)
+        layoutPanel = layoutPanel.cut(self.leg2)
+        layoutPanel = layoutPanel.cut(self.leg3)
+        layoutPanel = layoutPanel.cut(self.leg4)
+        layoutPanel = layoutPanel.cut(self.centerPost1)
+        layoutPanel = layoutPanel.cut(self.centerPost2)
+        self.layoutPanel = layoutPanel
+        self.__makeSides()
     def __makeDrawer(self):
         dx = self.__Length/2.0 - (CoffeeTableNV2.DrawerWidth()/2.0)
         self.__drawerOrigin = self.__baseOrigin.add(Base.Vector(dx,0,\
@@ -491,9 +505,44 @@ class CoffeeTableNV2(GenerateDrawings):
         self.topBarRight = right
         self.topBarFelt = felt
         self.tableTop = glass
+    def __makeOneLeg(self,lOrigin):
+        Material.AddMaterial("Hardwood","thick=%f"%(self.__LegSquare/25.4),\
+                             "width=%f"%(self.__LegSquare/25.4),\
+                             "length=%f"%(CoffeeTableNV2.LegLength()/25.4))
+        return Part.makePlane(self.__LegSquare,self.__LegSquare,lOrigin)\
+                .extrude(Base.Vector(0,0,CoffeeTableNV2.LegLength()))
     def __makeLegs(self):
-        pass
-    def __makeLexanSides(self):
+        l1O = self.origin.add(Base.Vector(self.__BoardThick-self.__NotchDepth,\
+                                          self.__BoardThick-self.__NotchDepth,
+                                          0))
+        leg = self.__makeOneLeg(l1O)
+        leg = leg.cut(self.baseFront)
+        leg = leg.cut(self.baseLeft)
+        leg = leg.cut(self.topBarFront)
+        leg = leg.cut(self.topBarLeft)
+        self.leg1 = leg
+        l2O = l1O.add(Base.Vector(0,self.__Width-self.__LegSquare-self.__BoardThick,0))
+        leg = self.__makeOneLeg(l2O)
+        leg = leg.cut(self.baseBack)
+        leg = leg.cut(self.baseLeft)
+        leg = leg.cut(self.topBarBack)
+        leg = leg.cut(self.topBarLeft)
+        self.leg2 = leg
+        l3O = l1O.add(Base.Vector(self.__Length-self.__LegSquare-self.__BoardThick,0,0))
+        leg = self.__makeOneLeg(l3O)
+        leg = leg.cut(self.baseFront)
+        leg = leg.cut(self.baseRight)
+        leg = leg.cut(self.topBarFront)
+        leg = leg.cut(self.topBarRight)
+        self.leg3 = leg
+        l4O = l3O.add(Base.Vector(0,self.__Width-self.__LegSquare-self.__BoardThick,0))
+        leg = self.__makeOneLeg(l4O)
+        leg = leg.cut(self.baseBack)
+        leg = leg.cut(self.baseRight)
+        leg = leg.cut(self.topBarBack)
+        leg = leg.cut(self.topBarRight)
+        self.leg4 = leg
+    def __makeSides(self):
         pass
     def show(self,doc=None):
         if doc==None:
@@ -591,6 +640,26 @@ class CoffeeTableNV2(GenerateDrawings):
         obj.Label = self.name+"_tableTop"
         obj.ViewObject.ShapeColor=self.__GlassColor
         obj.ViewObject.Transparency = 90
+        obj = doc.addObject("Part::Feature",self.name+"_leg1")
+        obj.Shape = self.leg1
+        obj.Label = self.name+"_leg1"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_leg2")
+        obj.Shape = self.leg2
+        obj.Label = self.name+"_leg2"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_leg3")
+        obj.Shape = self.leg3
+        obj.Label = self.name+"_leg3"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_leg4")
+        obj.Shape = self.leg4
+        obj.Label = self.name+"_leg4"
+        obj.ViewObject.ShapeColor=self.__WoodColor
+        obj = doc.addObject("Part::Feature",self.name+"_layoutPanel")
+        obj.Shape = self.layoutPanel
+        obj.Label = self.name+"_layoutPanel"
+        obj.ViewObject.ShapeColor=self.__BirchColor
 
 
 if __name__ == '__main__':
