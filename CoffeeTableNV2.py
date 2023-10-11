@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231011.1231>
+#  Last Modified : <231011.1419>
 #
 #  Description	
 #
@@ -853,6 +853,52 @@ class CoffeeTableNV2(GenerateDrawings):
         obj.Label = self.name+"_sideRight_lexan"
         obj.ViewObject.ShapeColor=self.__GlassColor
         obj.ViewObject.Transparency=90
+    def generateDrawings(self,doc):
+        # Page 1: base front
+        # Page 2: base back
+        # Page 3: base left, right, cross pieces
+        # Page 4: layout panel
+        # Page 5: center posts
+        # Page 6: leg
+        # Page 7: front/back middle bottom/top
+        # Page 8: left/right middle bottom/top
+        # Page 9: middle verts
+        # Page 10: top bar front/back
+        # Page 11: top bar left/right
+        self.createTemplate(doc,"Coffee Table N V2.0",11)
+        page1 = self.createSheet(doc,"Base Front")
+        doc.recompute([page1])
+        #TechDrawGui.exportPageAsPdf(page1,"CoffeeTableNV2_P1.pdf")
+        page2 = self.createSheet(doc,"Base Back")
+        doc.recompute([page2])
+        #TechDrawGui.exportPageAsPdf(page2,"CoffeeTableNV2_P2.pdf")
+        page3 = self.createSheet(doc,"Base left, right, cross piece")
+        doc.recompute([page3])
+        #TechDrawGui.exportPageAsPdf(page3,"CoffeeTableNV2_P3.pdf")
+        page4 = self.createSheet(doc,"Layout Panel")
+        doc.recompute([page4])
+        #TechDrawGui.exportPageAsPdf(page4,"CoffeeTableNV2_P4.pdf")
+        page5 = self.createSheet(doc,"Center Posts")
+        doc.recompute([page5])
+        #TechDrawGui.exportPageAsPdf(page5,"CoffeeTableNV2_P5.pdf")
+        page6 = self.createSheet(doc,"Legs")
+        doc.recompute([page6])
+        #TechDrawGui.exportPageAsPdf(page6,"CoffeeTableNV2_P6.pdf")
+        page7 = self.createSheet(doc,"Front/Back middle bottom/top")
+        doc.recompute([page7])
+        #TechDrawGui.exportPageAsPdf(page7,"CoffeeTableNV2_P7.pdf")
+        page8 = self.createSheet(doc,"Left/Right middle bottom/top")
+        doc.recompute([page8])
+        #TechDrawGui.exportPageAsPdf(page8,"CoffeeTableNV2_P8.pdf")
+        page9 = self.createSheet(doc,"Middle verts")
+        doc.recompute([page9])
+        #TechDrawGui.exportPageAsPdf(page9,"CoffeeTableNV2_P9.pdf")
+        page10 = self.createSheet(doc,"Top bar Front/Back")
+        doc.recompute([page10])
+        #TechDrawGui.exportPageAsPdf(page10,"CoffeeTableNV2_P10.pdf")
+        page11 = self.createSheet(doc,"Top bar Left/Right")
+        doc.recompute([page11])
+        #TechDrawGui.exportPageAsPdf(page11,"CoffeeTableNV2_P11.pdf")
 
 if __name__ == '__main__':
     doc = None
@@ -866,4 +912,5 @@ if __name__ == '__main__':
     Gui.ActiveDocument=doc
     Gui.SendMsgToActiveView("ViewFit")
     Gui.activeDocument().activeView().viewIsometric()
+    table.generateDrawings(doc)
     Material.BOM("CoffeeTableNV2.bom")    
