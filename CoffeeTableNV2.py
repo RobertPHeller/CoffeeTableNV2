@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231012.1038>
+#  Last Modified : <231012.1719>
 #
 #  Description	
 #
@@ -241,7 +241,7 @@ class CoffeeTableNV2(GenerateDrawings):
         self.__makeSides()
     def __CutBoxJoints(self,back,bO):
         rO = bO
-        lO = rO.add(Base.Vector(CoffeeTableNV2.DrawerWidth(),0,0))
+        lO = rO.add(Base.Vector(CoffeeTableNV2.DrawerWidth()-self.__BoardThick,0,0))
         bjW=self.__BoardThick
         bjL=self.__BoardThick
         bjH=self.__DrawerBJWidth
@@ -283,10 +283,15 @@ class CoffeeTableNV2(GenerateDrawings):
                              "width=%f"%(self.__DrawerHeight/25.4),\
                              "length=%f"%(CoffeeTableNV2.DrawerWidth()/25.4))
         fW = CoffeeTableNV2.DrawerWidth()+(2*self.__DrawerSideClearance)
-        fO = self.__drawerOrigin.add(Base.Vector(-self.__DrawerSideClearance))
-        front = Part.makePlane(fW,self.__BoardThick,fO).extrude(drawerExtrude)
+        fO = self.__drawerOrigin.add(Base.Vector(-self.__DrawerSideClearance,\
+                                                 0,\
+                                                 -self.__DrawerBottomClearance))
+        drawerFrontExtrude = Base.Vector(0,0,self.__DrawerHeight+\
+                                             self.__DrawerBottomClearance)
+        front = Part.makePlane(fW,self.__BoardThick,fO)\
+                    .extrude(drawerFrontExtrude)
         Material.AddMaterial("Hardwood","thick=13/16",\
-                             "width=%f"%(self.__DrawerHeight/25.4),\
+                             "width=%f"%((self.__DrawerHeight+self.__DrawerBottomClearance)/25.4),\
                              "length=%f"%(fW/25.4))
         front = front.cut(left)
         front = front.cut(right)
@@ -301,7 +306,7 @@ class CoffeeTableNV2(GenerateDrawings):
         Material.AddMaterial("birch plywood","thick=1/4",
                              "width=%f"%(botW/25.4),\
                              "length=%f"%(botL/25.4))
-        back = __CutBoxJoints(back,bO)
+        back = self.__CutBoxJoints(back,bO)
         left = left.cut(back)
         right = right.cut(back)
         front = front.cut(bottom)
@@ -313,14 +318,6 @@ class CoffeeTableNV2(GenerateDrawings):
         self.drawerRight = right
         self.drawerBack = back
         self.drawerBottom = bottom
-    def __cutDrawerCutout(self):
-        cW = self.__Length - (2*((self.__Length/3.0)+self.__BoardThick))
-        cH = self.__DrawerHeight
-        cO = self.__drawerOrigin.add(Base.Vector(-self.__DrawerSideClearance,\
-                                                 0,0))
-        cutout = Part.makePlane(cW,self.__BoardThick,cO)\
-                   .extrude(Base.Vector(0,0,cH))
-        self.baseFront = self.baseFront.cut(cutout)
     def __makeCenter(self):
         cX1 = self.__c1X
         cX2 = self.__c2X
@@ -444,7 +441,10 @@ class CoffeeTableNV2(GenerateDrawings):
         self.baseCross1 = cross1
         self.baseCross2 = cross2
         self.__makeDrawer()
-        self.__cutDrawerCutout()
+        self.baseFront = self.baseFront.cut(self.drawerFront)
+        self.baseFront = self.baseFront.cut(self.drawerLeft)
+        self.baseFront = self.baseFront.cut(self.drawerRight)
+        self.baseFront = self.baseFront.cut(self.drawerBottom)
         self.__makeCenter()
     def __makeTop(self):
         to = self.__FloorOffset+self.__BaseHeight+self.__ClearHeight
@@ -890,47 +890,77 @@ class CoffeeTableNV2(GenerateDrawings):
         # Page 14: Drawer Front        
         self.createTemplate(doc,"Coffee Table N V2.0",14)
         page1 = self.createSheet(doc,"Base Front")
-        
+        baseFront = doc.findObjects(Name=self.name+"_baseFront")[0]
+        # Vertex1  ll corner of base front
+        # Vertex18 lr corner of base front
+        # Vertex33 ll corner of drawer opening
+        # Vertex34 ul corner of drawer opening
+        # Vertex36 lr corner of drawer opening
+        tv = doc.addObject('TechDraw::DrawViewPart','FrontView_BaseFront')
+        page1.addView(tv)
+        tv.Source = baseFront
+        tv.Direction=(0.0,1.0,0.0)
+        tv.ScaleType = "Custom"
+        tv.Scale = 0.18
+        tv.X = 140
+        tv.Y = 170
+        doc.addObject('TechDraw::DrawViewDimension','FrontLength')
+        doc.FrontLength.Type = 'DistanceX'
+        doc.FrontLength.References2D=[(baseFront,'Vertex1'),\
+                                      (baseFront,'Vertex18')]
+        doc.FrontLength.FormatSpec = 'L'
+        doc.FrontLength.Arbitrary = True
+        doc.FrontLength.X = 20
+        doc.FrontLength.Y = 40
+        page1.addView(doc.FrontLength)
+        bv = doc.addObject('TechDraw::DrawViewPart','TopView_BaseFront')
+        page1.addView(bv)
+        bv.Source = baseFront
+        bv.Direction=(0.0,0.0,1.0)
+        bv.ScaleType = "Custom"
+        bv.Scale = 0.18
+        bv.X = 140
+        bv.Y = 100
         doc.recompute([page1])
         #TechDrawGui.exportPageAsPdf(page1,"CoffeeTableNV2_P1.pdf")
-        page2 = self.createSheet(doc,"Base Back")
-        doc.recompute([page2])
+        #page2 = self.createSheet(doc,"Base Back")
+        #doc.recompute([page2])
         #TechDrawGui.exportPageAsPdf(page2,"CoffeeTableNV2_P2.pdf")
-        page3 = self.createSheet(doc,"Base left, right, cross piece")
-        doc.recompute([page3])
+        #page3 = self.createSheet(doc,"Base left, right, cross piece")
+        #doc.recompute([page3])
         #TechDrawGui.exportPageAsPdf(page3,"CoffeeTableNV2_P3.pdf")
-        page4 = self.createSheet(doc,"Layout Panel")
-        doc.recompute([page4])
+        #page4 = self.createSheet(doc,"Layout Panel")
+        #doc.recompute([page4])
         #TechDrawGui.exportPageAsPdf(page4,"CoffeeTableNV2_P4.pdf")
-        page5 = self.createSheet(doc,"Center Posts")
-        doc.recompute([page5])
+        #page5 = self.createSheet(doc,"Center Posts")
+        #doc.recompute([page5])
         #TechDrawGui.exportPageAsPdf(page5,"CoffeeTableNV2_P5.pdf")
-        page6 = self.createSheet(doc,"Legs")
-        doc.recompute([page6])
+        #page6 = self.createSheet(doc,"Legs")
+        #doc.recompute([page6])
         #TechDrawGui.exportPageAsPdf(page6,"CoffeeTableNV2_P6.pdf")
-        page7 = self.createSheet(doc,"Front/Back middle bottom/top")
-        doc.recompute([page7])
+        #page7 = self.createSheet(doc,"Front/Back middle bottom/top")
+        #doc.recompute([page7])
         #TechDrawGui.exportPageAsPdf(page7,"CoffeeTableNV2_P7.pdf")
-        page8 = self.createSheet(doc,"Left/Right middle bottom/top")
-        doc.recompute([page8])
+        #page8 = self.createSheet(doc,"Left/Right middle bottom/top")
+        #doc.recompute([page8])
         #TechDrawGui.exportPageAsPdf(page8,"CoffeeTableNV2_P8.pdf")
-        page9 = self.createSheet(doc,"Middle verts")
-        doc.recompute([page9])
+        #page9 = self.createSheet(doc,"Middle verts")
+        #doc.recompute([page9])
         #TechDrawGui.exportPageAsPdf(page9,"CoffeeTableNV2_P9.pdf")
-        page10 = self.createSheet(doc,"Top bar Front/Back")
-        doc.recompute([page10])
+        #page10 = self.createSheet(doc,"Top bar Front/Back")
+        #doc.recompute([page10])
         #TechDrawGui.exportPageAsPdf(page10,"CoffeeTableNV2_P10.pdf")
-        page11 = self.createSheet(doc,"Top bar Left/Right")
-        doc.recompute([page11])
+        #page11 = self.createSheet(doc,"Top bar Left/Right")
+        #doc.recompute([page11])
         #TechDrawGui.exportPageAsPdf(page11,"CoffeeTableNV2_P11.pdf")
-        page12 = self.createSheet(doc,"Drawer Back")
-        doc.recompute([page12])
+        #page12 = self.createSheet(doc,"Drawer Back")
+        #doc.recompute([page12])
         #TechDrawGui.exportPageAsPdf(page12,"CoffeeTableNV2_P12.pdf")
-        page13 = self.createSheet(doc,"Drawer Sides")
-        doc.recompute([page13])
+        #page13 = self.createSheet(doc,"Drawer Sides")
+        #doc.recompute([page13])
         #TechDrawGui.exportPageAsPdf(page13,"CoffeeTableNV2_P13.pdf")
-        page14 = self.createSheet(doc,"Drawer Front")
-        doc.recompute([page14])
+        #page14 = self.createSheet(doc,"Drawer Front")
+        #doc.recompute([page14])
         #TechDrawGui.exportPageAsPdf(page14,"CoffeeTableNV2_P14.pdf")
 
 if __name__ == '__main__':
