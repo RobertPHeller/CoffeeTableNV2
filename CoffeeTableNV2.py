@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231011.1419>
+#  Last Modified : <231012.1038>
 #
 #  Description	
 #
@@ -185,6 +185,7 @@ class CoffeeTableNV2(GenerateDrawings):
     __BirchColor = (210/255.0,180/255.0,140/255.0)
     __WoodColor = (139/255.0,35/255.0,35/255.0)
     __DrawerHeight = 3*25.4
+    __DrawerBJWidth = (3/4)*25.4
     __DrawerLength = 16*25.4
     __DrawerOffBottom = 1*25.4
     __DrawerBottomNotch = .25*25.4
@@ -238,6 +239,22 @@ class CoffeeTableNV2(GenerateDrawings):
         layoutPanel = layoutPanel.cut(self.centerPost2)
         self.layoutPanel = layoutPanel
         self.__makeSides()
+    def __CutBoxJoints(self,back,bO):
+        rO = bO
+        lO = rO.add(Base.Vector(CoffeeTableNV2.DrawerWidth(),0,0))
+        bjW=self.__BoardThick
+        bjL=self.__BoardThick
+        bjH=self.__DrawerBJWidth
+        h = 0
+        while h < self.__DrawerHeight:
+            rno = rO.add(Base.Vector(0,0,h))
+            lno = lO.add(Base.Vector(0,0,h))
+            notchR = Part.makePlane(bjW,bjL,rno).extrude(Base.Vector(0,0,bjH))
+            notchL = Part.makePlane(bjW,bjL,lno).extrude(Base.Vector(0,0,bjH))
+            back = back.cut(notchR)
+            back = back.cut(notchL)
+            h = h + 2*bjH
+        return back
     def __makeDrawer(self):
         dx = self.__Length/2.0 - (CoffeeTableNV2.DrawerWidth()/2.0)
         self.__drawerOrigin = self.__baseOrigin.add(Base.Vector(dx,0,\
@@ -284,6 +301,9 @@ class CoffeeTableNV2(GenerateDrawings):
         Material.AddMaterial("birch plywood","thick=1/4",
                              "width=%f"%(botW/25.4),\
                              "length=%f"%(botL/25.4))
+        back = __CutBoxJoints(back,bO)
+        left = left.cut(back)
+        right = right.cut(back)
         front = front.cut(bottom)
         left = left.cut(bottom)
         right = right.cut(bottom)
@@ -865,8 +885,12 @@ class CoffeeTableNV2(GenerateDrawings):
         # Page 9: middle verts
         # Page 10: top bar front/back
         # Page 11: top bar left/right
-        self.createTemplate(doc,"Coffee Table N V2.0",11)
+        # Page 12: Drawer Back
+        # Page 13: Drawer sides
+        # Page 14: Drawer Front        
+        self.createTemplate(doc,"Coffee Table N V2.0",14)
         page1 = self.createSheet(doc,"Base Front")
+        
         doc.recompute([page1])
         #TechDrawGui.exportPageAsPdf(page1,"CoffeeTableNV2_P1.pdf")
         page2 = self.createSheet(doc,"Base Back")
@@ -899,6 +923,15 @@ class CoffeeTableNV2(GenerateDrawings):
         page11 = self.createSheet(doc,"Top bar Left/Right")
         doc.recompute([page11])
         #TechDrawGui.exportPageAsPdf(page11,"CoffeeTableNV2_P11.pdf")
+        page12 = self.createSheet(doc,"Drawer Back")
+        doc.recompute([page12])
+        #TechDrawGui.exportPageAsPdf(page12,"CoffeeTableNV2_P12.pdf")
+        page13 = self.createSheet(doc,"Drawer Sides")
+        doc.recompute([page13])
+        #TechDrawGui.exportPageAsPdf(page13,"CoffeeTableNV2_P13.pdf")
+        page14 = self.createSheet(doc,"Drawer Front")
+        doc.recompute([page14])
+        #TechDrawGui.exportPageAsPdf(page14,"CoffeeTableNV2_P14.pdf")
 
 if __name__ == '__main__':
     doc = None
