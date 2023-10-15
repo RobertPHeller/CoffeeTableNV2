@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231012.1719>
+#  Last Modified : <231015.1212>
 #
 #  Description	
 #
@@ -899,19 +899,19 @@ class CoffeeTableNV2(GenerateDrawings):
         tv = doc.addObject('TechDraw::DrawViewPart','FrontView_BaseFront')
         page1.addView(tv)
         tv.Source = baseFront
-        tv.Direction=(0.0,1.0,0.0)
+        tv.Direction=(0.0,-1.0,0.0)
         tv.ScaleType = "Custom"
         tv.Scale = 0.18
         tv.X = 140
         tv.Y = 170
         doc.addObject('TechDraw::DrawViewDimension','FrontLength')
-        doc.FrontLength.Type = 'DistanceX'
+        doc.FrontLength.Type = 'DistanceY'
         doc.FrontLength.References2D=[(baseFront,'Vertex1'),\
                                       (baseFront,'Vertex18')]
-        doc.FrontLength.FormatSpec = 'L'
-        doc.FrontLength.Arbitrary = True
-        doc.FrontLength.X = 20
-        doc.FrontLength.Y = 40
+        doc.FrontLength.FormatSpec = '%f mm'
+        doc.FrontLength.Arbitrary = False
+        doc.FrontLength.X = 120
+        doc.FrontLength.Y = 140
         page1.addView(doc.FrontLength)
         bv = doc.addObject('TechDraw::DrawViewPart','TopView_BaseFront')
         page1.addView(bv)
