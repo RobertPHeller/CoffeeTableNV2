@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231015.1212>
+#  Last Modified : <231017.1457>
 #
 #  Description	
 #
@@ -891,11 +891,18 @@ class CoffeeTableNV2(GenerateDrawings):
         self.createTemplate(doc,"Coffee Table N V2.0",14)
         page1 = self.createSheet(doc,"Base Front")
         baseFront = doc.findObjects(Name=self.name+"_baseFront")[0]
+        s=baseFront.Shape
+        verts=s.Vertexes
         # Vertex1  ll corner of base front
+        Vertex1=verts[0]
         # Vertex18 lr corner of base front
+        Vertex18=verts[17]
         # Vertex33 ll corner of drawer opening
+        Vertex33=verts[32]
         # Vertex34 ul corner of drawer opening
+        Vertex34=verts[33]
         # Vertex36 lr corner of drawer opening
+        Vertex36=verts[35]
         tv = doc.addObject('TechDraw::DrawViewPart','FrontView_BaseFront')
         page1.addView(tv)
         tv.Source = baseFront
@@ -904,15 +911,15 @@ class CoffeeTableNV2(GenerateDrawings):
         tv.Scale = 0.18
         tv.X = 140
         tv.Y = 170
-        doc.addObject('TechDraw::DrawViewDimension','FrontLength')
-        doc.FrontLength.Type = 'DistanceY'
-        doc.FrontLength.References2D=[(baseFront,'Vertex1'),\
-                                      (baseFront,'Vertex18')]
-        doc.FrontLength.FormatSpec = '%f mm'
-        doc.FrontLength.Arbitrary = False
-        doc.FrontLength.X = 120
-        doc.FrontLength.Y = 140
-        page1.addView(doc.FrontLength)
+        FL = doc.addObject('TechDraw::DrawViewDimension','FrontLength')
+        FL.Type = 'DistanceX'
+        FL.References2D=[(baseFront,'Vertex1'),\
+                         (baseFront,'Vertex18')]
+        FL.FormatSpec = "%5.2f in"%((Vertex18.X-Vertex1.X)/25.4)
+        FL.Arbitrary = True
+        FL.X = 120
+        FL.Y = 140
+        page1.addView(FL)
         bv = doc.addObject('TechDraw::DrawViewPart','TopView_BaseFront')
         page1.addView(bv)
         bv.Source = baseFront
@@ -921,6 +928,7 @@ class CoffeeTableNV2(GenerateDrawings):
         bv.Scale = 0.18
         bv.X = 140
         bv.Y = 100
+        page1.recompute()
         doc.recompute([page1])
         #TechDrawGui.exportPageAsPdf(page1,"CoffeeTableNV2_P1.pdf")
         #page2 = self.createSheet(doc,"Base Back")
