@@ -8,7 +8,7 @@
 #  Author        : $Author$
 #  Created By    : Robert Heller
 #  Created       : Sun Oct 8 10:04:47 2023
-#  Last Modified : <231017.1457>
+#  Last Modified : <251205.1014>
 #
 #  Description	
 #
@@ -191,7 +191,7 @@ class CoffeeTableNV2(GenerateDrawings):
     __DrawerBottomNotch = .25*25.4
     __DrawerBottomNotchOffset = .5*25.4
     __BackDropColor = (1.0,1.0,1.0)
-    __BackDropThick = .25*25.4
+    __BackDropThick = .125*25.4
     __SideBoardThick = (9/16)*25.4
     __SideBoardWidth = 1*25.4
     __SideBoardTennonThick = (3/16)*25.4
@@ -358,15 +358,15 @@ class CoffeeTableNV2(GenerateDrawings):
         backH = centerTop - back1O.z
         back1 = Part.makePlane(backL,self.__BackDropThick,back1O)\
                 .extrude(Base.Vector(0,0,backH))
-        Material.AddMaterial("Masonite","thick=1/4",\
-                             "width=%f"%(backL),\
-                             "length=%f"%(backH))
+        Material.AddMaterial("Masonite","thick=1/8",\
+                             "width=%f"%(backH/25.4),\
+                             "length=%f"%(backL/25.4))
         back2O = centerOrigin.add(Base.Vector(0,self.__LegSquare,backZ))
         back2 = Part.makePlane(backL,self.__BackDropThick,back2O)\
                 .extrude(Base.Vector(0,0,backH))
-        Material.AddMaterial("Masonite","thick=1/4",\
-                             "width=%f"%(backL),\
-                             "length=%f"%(backH))
+        Material.AddMaterial("Masonite","thick=1/8",\
+                             "width=%f"%(backH/25.4),\
+                             "length=%f"%(backL/25.4))
         topFelt = Part.makePlane(cLength-self.__NotchDepth,self.__LegSquare,\
                                 centerOrigin.add(Base.Vector(self.__BoardThick-self.__NotchDepth, 
                                                              0,cPostH)))\
@@ -663,6 +663,14 @@ class CoffeeTableNV2(GenerateDrawings):
         right = right.cut(top)
         lex = Part.makePlane(lexw,lexl,orig1.add(Base.Vector(lexxoff,lexyoff,lexzoff)))\
                 .extrude(Base.Vector(0,0,lexh))
+        if (lexw/25.4) == 0.125:
+            Material.AddMaterial("Lexan","thick=1/8",\
+                            "width=%f"%(lexh/25.4),\
+                            "length=%f"%(lexl/25.4))
+        if (lexl/25.4) == 0.125:
+            Material.AddMaterial("Lexan","thick=1/8",\
+                            "width=%f"%(lexh/25.4),\
+                            "length=%f"%(lexw/25.4)) 
         bot = bot.cut(lex)
         top = top.cut(lex)
         left = left.cut(lex)
